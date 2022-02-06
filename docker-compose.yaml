@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: node
+      dockerfile: Dockerfile
+    container_name: app
+    networks:
+      - nodenet
+    volumes:
+      - ./node:/usr/app/
+      - /usr/app/node_modules
+    tty: true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - '8080:80'
+    depends_on:
+      - app
+    networks:
+      - nodenet
+  db:
+    build:
+      context: ./mysql
+    container_name: db
+    restart: always
+    tty: true
+    networks:
+      - nodenet
+    volumes:
+      - ./mysql/volume:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+networks:
+  nodenet:
+    driver: bridge
